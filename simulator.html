@@ -164,6 +164,91 @@
                 transparent 20px
             );
         }
+        .rubber-chicken {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #ffeb3b;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: opacity 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .rubber-chicken::before {
+            content: '🐔';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+        }
+        .rubber-chicken::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 6px;
+            height: 6px;
+            background: #ff5722;
+            border-radius: 50%;
+        }
+        .rubber-chicken.hit {
+            opacity: 0;
+            transform: translateY(-50%) scale(0.5);
+        }
+        .question-container {
+            background: #fff;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #667eea;
+        }
+        .question-text {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        .score-display {
+            background: #667eea;
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .round-info {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            border: 2px solid #e9ecef;
+        }
+        .next-round-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 1rem 0;
+            transition: all 0.3s ease;
+        }
+        .next-round-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .next-round-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
     </style>
 </head>
 <body>
@@ -177,60 +262,210 @@
     </nav>
     <div class="page">
         <div class="simulator-container">
-            <h2>Interactive Simulator</h2>
-            <p style="color: #666; font-size: 1.2rem; margin-bottom: 2rem;">Choose the direction for the train on the track below.</p>
+            <h2>Trolley Problem Simulator</h2>
+            <p style="color: #666; font-size: 1.2rem; margin-bottom: 2rem;">Make your choice: divert the train or let it continue on its current path.</p>
+            
+            <div class="question-container">
+                <div class="question-text" id="questionText">
+                    A runaway train is heading towards 5 rubber chickens on the main track. You can divert it to a side track, but there are 2 rubber chickens on that track. What do you do?
+                </div>
+                <div class="round-info">
+                    <div class="score-display">
+                        Round: <span id="currentRound">1</span> | Score: <span id="currentScore">0</span> | Chickens Hit: <span id="chickensHit">0</span>
+                    </div>
+                </div>
+            </div>
             
             <div class="simulator-box">
-                <h3 style="color: #667eea; margin-bottom: 1rem;">Train Track Simulator</h3>
-                <div class="train-track">
+                <h3 style="color: #667eea; margin-bottom: 1rem;">Trolley Track Simulator</h3>
+                <div class="train-track" id="trainTrack">
                     <div class="track-lines"></div>
                     <div class="train" id="train">
                         <div class="train-windows"></div>
                         <div class="train-wheels"></div>
                     </div>
+                    <!-- Rubber chickens will be dynamically added here -->
                 </div>
                 
                 <div class="direction-buttons">
-                    <button class="direction-btn left-btn" onclick="moveTrain('left')">
-                        ← Go Left
+                    <button class="direction-btn left-btn" onclick="makeChoice('left')">
+                        ← Divert Left
                     </button>
-                    <button class="direction-btn right-btn" onclick="moveTrain('right')">
-                        Go Right →
+                    <button class="direction-btn right-btn" onclick="makeChoice('right')">
+                        Continue Right →
                     </button>
                 </div>
+                
+                <button class="next-round-btn" id="nextRoundBtn" onclick="nextRound()" disabled>
+                    Next Round
+                </button>
             </div>
             
-            <p style="color: #999; margin-top: 2rem;">Click the buttons to see the train move in different directions!</p>
+            <p style="color: #999; margin-top: 2rem;">Click the buttons to make your choice and see the consequences!</p>
         </div>
     </div>
     
     <script>
-        function moveTrain(direction) {
+        // Game state
+        let gameState = {
+            currentRound: 1,
+            score: 0,
+            chickensHit: 0,
+            isChoiceMade: false,
+            currentScenario: null
+        };
+
+        // Trolley problem scenarios
+        const scenarios = [
+            {
+                question: "A runaway train is heading towards 5 rubber chickens on the main track. You can divert it to a side track, but there are 2 rubber chickens on that track. What do you do?",
+                leftTrack: { chickens: 2, position: 'left' },
+                rightTrack: { chickens: 5, position: 'right' }
+            },
+            {
+                question: "The train is approaching 3 rubber chickens on the main track. You can switch to a side track with 1 rubber chicken. What's your choice?",
+                leftTrack: { chickens: 1, position: 'left' },
+                rightTrack: { chickens: 3, position: 'right' }
+            },
+            {
+                question: "There are 4 rubber chickens on the main track and 3 on the side track. Which path do you choose?",
+                leftTrack: { chickens: 3, position: 'left' },
+                rightTrack: { chickens: 4, position: 'right' }
+            },
+            {
+                question: "The main track has 6 rubber chickens, while the side track has only 1. Make your decision.",
+                leftTrack: { chickens: 1, position: 'left' },
+                rightTrack: { chickens: 6, position: 'right' }
+            },
+            {
+                question: "You see 2 rubber chickens on the main track and 2 on the side track. Both choices seem equal. What do you do?",
+                leftTrack: { chickens: 2, position: 'left' },
+                rightTrack: { chickens: 2, position: 'right' }
+            }
+        ];
+
+        function generateChickens(track, count, position) {
+            const trackElement = document.getElementById('trainTrack');
+            const trackWidth = trackElement.offsetWidth;
+            const chickenSize = 30;
+            
+            // Clear existing chickens
+            const existingChickens = trackElement.querySelectorAll('.rubber-chicken');
+            existingChickens.forEach(chicken => chicken.remove());
+            
+            // Generate new chickens
+            for (let i = 0; i < count; i++) {
+                const chicken = document.createElement('div');
+                chicken.className = 'rubber-chicken';
+                chicken.id = `chicken-${position}-${i}`;
+                
+                // Position chickens along the track
+                let xPosition;
+                if (position === 'left') {
+                    xPosition = (trackWidth * 0.2) + (i * 40); // Left side of track
+                } else {
+                    xPosition = (trackWidth * 0.6) + (i * 40); // Right side of track
+                }
+                
+                chicken.style.left = xPosition + 'px';
+                trackElement.appendChild(chicken);
+            }
+        }
+
+        function loadScenario(scenarioIndex) {
+            const scenario = scenarios[scenarioIndex % scenarios.length];
+            gameState.currentScenario = scenario;
+            
+            // Update question
+            document.getElementById('questionText').textContent = scenario.question;
+            
+            // Generate chickens for both tracks
+            generateChickens('left', scenario.leftTrack.chickens, 'left');
+            generateChickens('right', scenario.rightTrack.chickens, 'right');
+            
+            // Reset train position
             const train = document.getElementById('train');
-            const track = document.querySelector('.train-track');
+            train.style.transform = 'translateX(0)';
+            
+            // Reset game state
+            gameState.isChoiceMade = false;
+            document.getElementById('nextRoundBtn').disabled = true;
+            
+            // Update display
+            updateDisplay();
+        }
+
+        function makeChoice(direction) {
+            if (gameState.isChoiceMade) return;
+            
+            gameState.isChoiceMade = true;
+            const train = document.getElementById('train');
+            const track = document.getElementById('trainTrack');
             const trackWidth = track.offsetWidth;
             const trainWidth = train.offsetWidth;
             const maxPosition = trackWidth - trainWidth;
             
-            // Remove any existing transform classes
-            train.classList.remove('move-left', 'move-right', 'move-center');
+            // Move train based on choice
+            if (direction === 'left') {
+                train.style.transform = 'translateX(-' + (maxPosition * 0.3) + 'px)';
+                checkCollisions('left');
+            } else {
+                train.style.transform = 'translateX(' + (maxPosition * 0.3) + 'px)';
+                checkCollisions('right');
+            }
             
-            // Add a small delay to ensure the class removal is processed
-            setTimeout(() => {
-                if (direction === 'left') {
-                    train.style.transform = 'translateX(-' + (maxPosition / 2) + 'px)';
-                    train.classList.add('move-left');
-                } else if (direction === 'right') {
-                    train.style.transform = 'translateX(' + (maxPosition / 2) + 'px)';
-                    train.classList.add('move-right');
-                }
-            }, 10);
+            // Enable next round button
+            document.getElementById('nextRoundBtn').disabled = false;
         }
-        
-        // Reset train to center on page load
-        window.addEventListener('load', function() {
+
+        function checkCollisions(direction) {
+            const chickens = document.querySelectorAll('.rubber-chicken');
             const train = document.getElementById('train');
-            train.style.transform = 'translateX(0)';
+            const trainRect = train.getBoundingClientRect();
+            const trackRect = document.getElementById('trainTrack').getBoundingClientRect();
+            
+            let hitCount = 0;
+            
+            chickens.forEach(chicken => {
+                const chickenRect = chicken.getBoundingClientRect();
+                
+                // Check if chicken is on the same side as the train direction
+                const chickenPosition = chicken.id.includes('left') ? 'left' : 'right';
+                
+                if (chickenPosition === direction) {
+                    // Simple collision detection
+                    const isColliding = !(trainRect.right < chickenRect.left || 
+                                        trainRect.left > chickenRect.right || 
+                                        trainRect.bottom < chickenRect.top || 
+                                        trainRect.top > chickenRect.bottom);
+                    
+                    if (isColliding) {
+                        chicken.classList.add('hit');
+                        hitCount++;
+                        gameState.chickensHit++;
+                    }
+                }
+            });
+            
+            // Update score (lower is better in this moral dilemma)
+            gameState.score += hitCount;
+            updateDisplay();
+        }
+
+        function nextRound() {
+            gameState.currentRound++;
+            loadScenario(gameState.currentRound - 1);
+        }
+
+        function updateDisplay() {
+            document.getElementById('currentRound').textContent = gameState.currentRound;
+            document.getElementById('currentScore').textContent = gameState.score;
+            document.getElementById('chickensHit').textContent = gameState.chickensHit;
+        }
+
+        // Initialize the game
+        window.addEventListener('load', function() {
+            loadScenario(0);
         });
     </script>
 </body>
