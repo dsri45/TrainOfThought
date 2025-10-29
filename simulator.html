@@ -64,6 +64,106 @@
             margin-bottom: 2rem;
             font-size: 2.5rem;
         }
+        .simulator-box {
+            background: #f8f9fa;
+            border: 3px solid #667eea;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            position: relative;
+            overflow: hidden;
+            min-height: 200px;
+        }
+        .train-track {
+            position: relative;
+            height: 60px;
+            background: #333;
+            border-radius: 30px;
+            margin: 2rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .train {
+            width: 80px;
+            height: 40px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border-radius: 8px;
+            position: relative;
+            transition: transform 0.5s ease-in-out;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .train::before {
+            content: '🚂';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+        }
+        .train-windows {
+            position: absolute;
+            top: 8px;
+            left: 10px;
+            right: 10px;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 4px;
+        }
+        .train-wheels {
+            position: absolute;
+            bottom: -5px;
+            left: 10px;
+            right: 10px;
+            height: 10px;
+            background: #333;
+            border-radius: 5px;
+        }
+        .direction-buttons {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        .direction-btn {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+        .left-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+        }
+        .right-btn {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+        }
+        .direction-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .direction-btn:active {
+            transform: translateY(0);
+        }
+        .track-lines {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: repeating-linear-gradient(
+                to right,
+                #fff 0px,
+                #fff 10px,
+                transparent 10px,
+                transparent 20px
+            );
+        }
     </style>
 </head>
 <body>
@@ -78,9 +178,60 @@
     <div class="page">
         <div class="simulator-container">
             <h2>Interactive Simulator</h2>
-            <p style="color: #666; font-size: 1.2rem; margin-bottom: 2rem;">The simulator will be implemented here with interactive trolley problem scenarios.</p>
-            <p style="color: #999;">Coming soon: Face probabilistic variations of the trolley problem with adaptive learning!</p>
+            <p style="color: #666; font-size: 1.2rem; margin-bottom: 2rem;">Choose the direction for the train on the track below.</p>
+            
+            <div class="simulator-box">
+                <h3 style="color: #667eea; margin-bottom: 1rem;">Train Track Simulator</h3>
+                <div class="train-track">
+                    <div class="track-lines"></div>
+                    <div class="train" id="train">
+                        <div class="train-windows"></div>
+                        <div class="train-wheels"></div>
+                    </div>
+                </div>
+                
+                <div class="direction-buttons">
+                    <button class="direction-btn left-btn" onclick="moveTrain('left')">
+                        ← Go Left
+                    </button>
+                    <button class="direction-btn right-btn" onclick="moveTrain('right')">
+                        Go Right →
+                    </button>
+                </div>
+            </div>
+            
+            <p style="color: #999; margin-top: 2rem;">Click the buttons to see the train move in different directions!</p>
         </div>
     </div>
+    
+    <script>
+        function moveTrain(direction) {
+            const train = document.getElementById('train');
+            const track = document.querySelector('.train-track');
+            const trackWidth = track.offsetWidth;
+            const trainWidth = train.offsetWidth;
+            const maxPosition = trackWidth - trainWidth;
+            
+            // Remove any existing transform classes
+            train.classList.remove('move-left', 'move-right', 'move-center');
+            
+            // Add a small delay to ensure the class removal is processed
+            setTimeout(() => {
+                if (direction === 'left') {
+                    train.style.transform = 'translateX(-' + (maxPosition / 2) + 'px)';
+                    train.classList.add('move-left');
+                } else if (direction === 'right') {
+                    train.style.transform = 'translateX(' + (maxPosition / 2) + 'px)';
+                    train.classList.add('move-right');
+                }
+            }, 10);
+        }
+        
+        // Reset train to center on page load
+        window.addEventListener('load', function() {
+            const train = document.getElementById('train');
+            train.style.transform = 'translateX(0)';
+        });
+    </script>
 </body>
 </html>
