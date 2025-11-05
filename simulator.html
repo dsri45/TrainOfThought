@@ -68,30 +68,35 @@
             background: #f8f9fa;
             border: 3px solid #667eea;
             border-radius: 15px;
-            padding: 2rem;
+            padding: 2.5rem;
             margin: 2rem 0;
             position: relative;
-            overflow: hidden;
-            min-height: 200px;
+            overflow: visible;
+            min-height: 250px;
         }
         .train-track {
             position: relative;
-            height: 60px;
-            background: #333;
-            border-radius: 30px;
-            margin: 2rem 0;
+            height: 80px;
+            background: linear-gradient(to bottom, #2c2c2c, #1a1a1a);
+            border-radius: 40px;
+            margin: 2.5rem 0;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
+            padding: 0 20px;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+            border: 2px solid #1a1a1a;
         }
         .train {
-            width: 80px;
-            height: 40px;
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            width: 90px;
+            height: 50px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
             border-radius: 8px;
-            position: relative;
-            transition: transform 0.5s ease-in-out;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            position: absolute;
+            left: 20px;
+            transition: left 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            z-index: 10;
         }
         .train::before {
             content: '🚂';
@@ -143,38 +148,44 @@
             background: linear-gradient(45deg, #4ecdc4, #44a08d);
             color: white;
         }
-        .direction-btn:hover {
+        .direction-btn:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
-        .direction-btn:active {
+        .direction-btn:active:not(:disabled) {
             transform: translateY(0);
+        }
+        .direction-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
         }
         .track-lines {
             position: absolute;
             top: 50%;
             left: 0;
             right: 0;
-            height: 2px;
+            height: 3px;
             background: repeating-linear-gradient(
                 to right,
                 #fff 0px,
-                #fff 10px,
-                transparent 10px,
-                transparent 20px
+                #fff 12px,
+                transparent 12px,
+                transparent 24px
             );
+            opacity: 0.3;
         }
         .rubber-chicken {
             position: absolute;
-            width: 30px;
-            height: 30px;
+            width: 35px;
+            height: 35px;
             background: #ffeb3b;
             border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
             top: 50%;
             transform: translateY(-50%);
-            transition: opacity 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
             cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+            z-index: 5;
         }
         .rubber-chicken::before {
             content: '🐔';
@@ -196,35 +207,38 @@
         }
         .rubber-chicken.hit {
             opacity: 0;
-            transform: translateY(-50%) scale(0.5);
+            transform: translateY(-50%) scale(0) rotate(360deg);
+            pointer-events: none;
         }
         .question-container {
-            background: #fff;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
             border-radius: 15px;
             padding: 2rem;
             margin: 2rem 0;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
             border-left: 5px solid #667eea;
         }
         .question-text {
-            font-size: 1.3rem;
+            font-size: 1.25rem;
             color: #333;
             margin-bottom: 1.5rem;
-            line-height: 1.6;
+            line-height: 1.7;
+            font-weight: 500;
         }
         .score-display {
-            background: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 1rem;
-            border-radius: 10px;
+            padding: 1.2rem;
+            border-radius: 12px;
             margin: 1rem 0;
-            font-size: 1.2rem;
-            font-weight: bold;
+            font-size: 1.1rem;
+            font-weight: 600;
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
         }
         .round-info {
-            background: #f8f9fa;
-            padding: 1rem;
-            border-radius: 10px;
+            background: #ffffff;
+            padding: 1.2rem;
+            border-radius: 12px;
             margin: 1rem 0;
             border: 2px solid #e9ecef;
         }
@@ -263,7 +277,7 @@
     <div class="page">
         <div class="simulator-container">
             <h2>Trolley Problem Simulator</h2>
-            <p style="color: #666; font-size: 1.2rem; margin-bottom: 2rem;">Make your choice: divert the train or let it continue on its current path.</p>
+            <p style="color: #666; font-size: 1.1rem; margin-bottom: 1.5rem;">Make your choice: divert the train or let it continue. Watch as the train runs over the chickens on your chosen track.</p>
             
             <div class="question-container">
                 <div class="question-text" id="questionText">
@@ -300,8 +314,6 @@
                     Next Round
                 </button>
             </div>
-            
-            <p style="color: #999; margin-top: 2rem;">Click the buttons to make your choice and see the consequences!</p>
         </div>
     </div>
     
@@ -347,7 +359,8 @@
         function generateChickens(track, count, position) {
             const trackElement = document.getElementById('trainTrack');
             const trackWidth = trackElement.offsetWidth;
-            const chickenSize = 30;
+            const trackPadding = 20;
+            const usableWidth = trackWidth - (trackPadding * 2);
             
             // Clear existing chickens
             const existingChickens = trackElement.querySelectorAll('.rubber-chicken');
@@ -358,13 +371,18 @@
                 const chicken = document.createElement('div');
                 chicken.className = 'rubber-chicken';
                 chicken.id = `chicken-${position}-${i}`;
+                chicken.dataset.position = position;
                 
-                // Position chickens along the track
+                // Position chickens along the track - spread them out
                 let xPosition;
-                if (position === 'left') {
-                    xPosition = (trackWidth * 0.2) + (i * 40); // Left side of track
-                } else {
-                    xPosition = (trackWidth * 0.6) + (i * 40); // Right side of track
+                const spacing = 60; // Space between chickens
+                const startOffset = position === 'left' ? trackWidth * 0.25 : trackWidth * 0.55;
+                
+                xPosition = startOffset + (i * spacing);
+                
+                // Ensure chickens stay within track bounds
+                if (xPosition + 35 > trackWidth - trackPadding) {
+                    xPosition = trackWidth - trackPadding - 35;
                 }
                 
                 chicken.style.left = xPosition + 'px';
@@ -383,13 +401,20 @@
             generateChickens('left', scenario.leftTrack.chickens, 'left');
             generateChickens('right', scenario.rightTrack.chickens, 'right');
             
-            // Reset train position
+            // Reset train position to start
             const train = document.getElementById('train');
-            train.style.transform = 'translateX(0)';
+            train.style.left = '20px';
+            train.style.transition = 'left 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
             
             // Reset game state
             gameState.isChoiceMade = false;
             document.getElementById('nextRoundBtn').disabled = true;
+            
+            // Re-enable buttons
+            document.querySelectorAll('.direction-btn').forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            });
             
             // Update display
             updateDisplay();
@@ -399,41 +424,70 @@
             if (gameState.isChoiceMade) return;
             
             gameState.isChoiceMade = true;
+            
+            // Disable buttons
+            document.querySelectorAll('.direction-btn').forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.6';
+            });
+            
             const train = document.getElementById('train');
             const track = document.getElementById('trainTrack');
             const trackWidth = track.offsetWidth;
             const trainWidth = train.offsetWidth;
-            const maxPosition = trackWidth - trainWidth;
             
-            // Move train based on choice
-            if (direction === 'left') {
-                train.style.transform = 'translateX(-' + (maxPosition * 0.3) + 'px)';
-                checkCollisions('left');
-            } else {
-                train.style.transform = 'translateX(' + (maxPosition * 0.3) + 'px)';
-                checkCollisions('right');
+            // Get chickens on the chosen track
+            const targetChickens = Array.from(document.querySelectorAll('.rubber-chicken'))
+                .filter(chicken => chicken.dataset.position === direction);
+            
+            if (targetChickens.length === 0) {
+                // No chickens to hit, just move train forward a bit
+                train.style.left = (direction === 'left' ? trackWidth * 0.3 : trackWidth * 0.7) + 'px';
+                setTimeout(() => {
+                    document.getElementById('nextRoundBtn').disabled = false;
+                }, 1500);
+                return;
             }
             
-            // Enable next round button
-            document.getElementById('nextRoundBtn').disabled = false;
+            // Find the farthest chicken position (where train needs to reach)
+            let farthestPos;
+            
+            if (direction === 'left') {
+                // For left, find the leftmost chicken
+                farthestPos = Math.min(...targetChickens.map(c => parseInt(c.style.left)));
+            } else {
+                // For right, find the rightmost chicken
+                farthestPos = Math.max(...targetChickens.map(c => parseInt(c.style.left)));
+            }
+            
+            // Calculate target position based on direction
+            // Move train to pass through all chickens on the chosen track
+            const targetPosition = direction === 'left' 
+                ? Math.max(20, farthestPos - 20) // Don't go too far left
+                : Math.min(trackWidth - trainWidth - 20, farthestPos + 50); // Don't exceed track width
+            
+            train.style.left = targetPosition + 'px';
+            
+            // Start checking for collisions during animation
+            checkCollisionsDuringAnimation(direction, targetChickens);
         }
 
-        function checkCollisions(direction) {
-            const chickens = document.querySelectorAll('.rubber-chicken');
+        function checkCollisionsDuringAnimation(direction, targetChickens) {
             const train = document.getElementById('train');
-            const trainRect = train.getBoundingClientRect();
-            const trackRect = document.getElementById('trainTrack').getBoundingClientRect();
+            let checkInterval;
+            let animationStartTime = Date.now();
+            const animationDuration = 1500; // ms
             
-            let hitCount = 0;
-            
-            chickens.forEach(chicken => {
-                const chickenRect = chicken.getBoundingClientRect();
+            checkInterval = setInterval(() => {
+                const trainRect = train.getBoundingClientRect();
+                const trackRect = document.getElementById('trainTrack').getBoundingClientRect();
                 
-                // Check if chicken is on the same side as the train direction
-                const chickenPosition = chicken.id.includes('left') ? 'left' : 'right';
-                
-                if (chickenPosition === direction) {
-                    // Simple collision detection
+                targetChickens.forEach(chicken => {
+                    if (chicken.classList.contains('hit')) return; // Already hit
+                    
+                    const chickenRect = chicken.getBoundingClientRect();
+                    
+                    // Check collision - train is overlapping with chicken
                     const isColliding = !(trainRect.right < chickenRect.left || 
                                         trainRect.left > chickenRect.right || 
                                         trainRect.bottom < chickenRect.top || 
@@ -441,15 +495,30 @@
                     
                     if (isColliding) {
                         chicken.classList.add('hit');
-                        hitCount++;
                         gameState.chickensHit++;
+                        
+                        // Add a small delay for visual effect
+                        setTimeout(() => {
+                            chicken.style.display = 'none';
+                        }, 400);
                     }
+                });
+                
+                // Stop checking after animation completes
+                if (Date.now() - animationStartTime > animationDuration) {
+                    clearInterval(checkInterval);
+                    
+                    // Final score update
+                    const hitCount = targetChickens.filter(c => c.classList.contains('hit')).length;
+                    gameState.score += hitCount;
+                    updateDisplay();
+                    
+                    // Enable next round button
+                    setTimeout(() => {
+                        document.getElementById('nextRoundBtn').disabled = false;
+                    }, 300);
                 }
-            });
-            
-            // Update score (lower is better in this moral dilemma)
-            gameState.score += hitCount;
-            updateDisplay();
+            }, 50); // Check every 50ms
         }
 
         function nextRound() {
