@@ -11,12 +11,6 @@
             box-sizing: border-box;
         }
         body {
-<<<<<<< Updated upstream
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
-=======
             margin: 0;
             padding: 0;
             font-family: system-ui, -apple-system, sans-serif;
@@ -26,27 +20,12 @@
             background-position: center;
             background-repeat: no-repeat;
             background-attachment: fixed;
->>>>>>> Stashed changes
         }
         nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 1.5rem 3rem;
-<<<<<<< Updated upstream
-            background: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .logo {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #667eea;
-            text-decoration: none;
-        }
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-=======
             background: transparent;
             position: relative;
             z-index: 1000;
@@ -92,39 +71,11 @@
         .nav-links {
             display: flex;
             gap: 2.5rem;
->>>>>>> Stashed changes
         }
         .nav-links a {
             text-decoration: none;
             color: #333;
             font-weight: 500;
-<<<<<<< Updated upstream
-            transition: color 0.3s;
-        }
-        .nav-links a:hover {
-            color: #667eea;
-        }
-        .nav-links a.active {
-            color: #667eea;
-            border-bottom: 2px solid #667eea;
-        }
-        .page {
-            padding: 3rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .simulator-container {
-            background: white;
-            border-radius: 20px;
-            padding: 3rem;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        .simulator-container h2 {
-            color: #667eea;
-            margin-bottom: 2rem;
-            font-size: 2.5rem;
-=======
             font-size: 1rem;
             transition: color 0.3s;
         }
@@ -137,28 +88,12 @@
         #app {
             position: relative;
             z-index: 1;
->>>>>>> Stashed changes
         }
     </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
     <nav>
-<<<<<<< Updated upstream
-        <a href="index.html" class="logo">Train of Thought</a>
-        <div class="nav-links">
-            <a href="index.html">Home</a>
-            <a href="simulator.html" class="active">Simulator</a>
-            <a href="dashboard.html">Dashboard</a>
-        </div>
-    </nav>
-    <div class="page">
-        <div class="simulator-container">
-            <h2>Interactive Simulator</h2>
-            <p style="color: #666; font-size: 1.2rem; margin-bottom: 2rem;">The simulator will be implemented here with interactive trolley problem scenarios.</p>
-            <p style="color: #999;">Coming soon: Face probabilistic variations of the trolley problem with adaptive learning!</p>
-        </div>
-    </div>
-=======
         <a href="index.html" class="logo">
             <div class="logo-icon"></div>
             <span>Train Of Thought</span>
@@ -173,7 +108,7 @@
 
     <script>
         // ===== Replace with your actual API key =====
-        const GEMINI_API_KEY = "";
+        const GEMINI_API_KEY = "AIzaSyB7OZN1j13ONFsKnRYTma_okQ7n8EPwMt4";
         // ============================================
 
         let state = {
@@ -413,7 +348,6 @@ Ensure the dilemmas are thought-provoking, ethically complex, and vary in stakes
             let utilitarian = 0, deontological = 0, empathy = 0, riskTaking = 0;
             let optionACount = 0, optionBCount = 0;
             const choicePattern = [];
-            const decisionSpeed = []; // Track if choices were consistent
 
             state.choices.forEach((choice, idx) => {
                 const cons = choice.optionChosen.consequence.toLowerCase();
@@ -787,6 +721,5 @@ Ensure the dilemmas are thought-provoking, ethically complex, and vary in stakes
         // Initial render
         render();
     </script>
->>>>>>> Stashed changes
 </body>
 </html>
