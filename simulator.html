@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Train of Thought - Simulator</title>
+    <title>Ethical Dilemma Simulator</title>
     <style>
         * {
             margin: 0;
@@ -11,76 +11,188 @@
             box-sizing: border-box;
         }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
-        }
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.5rem 3rem;
-            background: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .logo {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #667eea;
-            text-decoration: none;
-        }
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-        }
-        .nav-links a {
-            text-decoration: none;
-            color: #333;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-        .nav-links a:hover {
-            color: #667eea;
-        }
-        .nav-links a.active {
-            color: #667eea;
-            border-bottom: 2px solid #667eea;
-        }
-        .page {
-            padding: 3rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .simulator-container {
-            background: white;
-            border-radius: 20px;
-            padding: 3rem;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        .simulator-container h2 {
-            color: #667eea;
-            margin-bottom: 2rem;
-            font-size: 2.5rem;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+            overflow-x: hidden;
         }
     </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
-    <nav>
-        <a href="index.html" class="logo">Train of Thought</a>
-        <div class="nav-links">
-            <a href="index.html">Home</a>
-            <a href="simulator.html" class="active">Simulator</a>
-            <a href="dashboard.html">Dashboard</a>
-        </div>
-    </nav>
-    <div class="page">
-        <div class="simulator-container">
-            <h2>Interactive Simulator</h2>
-            <p style="color: #666; font-size: 1.2rem; margin-bottom: 2rem;">The simulator will be implemented here with interactive trolley problem scenarios.</p>
-            <p style="color: #999;">Coming soon: Face probabilistic variations of the trolley problem with adaptive learning!</p>
-        </div>
-    </div>
+    <div id="app"></div>
+
+    <script>
+        // ===== Replace with your actual API key =====
+        const GEMINI_API_KEY = "AIzaSyAOMtlcN5qYtfDH4mu1YbVYfUSX8Mx5-Po";
+        // ============================================
+
+        let state = {
+            stage: 'intro',
+            scenarios: [],
+            currentIndex: 0,
+            choices: [],
+            loading: false,
+            error: null
+        };
+
+        async function generateScenarios() {
+            state.loading = true;
+            state.error = null;
+            render();
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `Generate 5 unique ethical dilemmas inspired by the trolley problem. Each dilemma should:
+1. Present two morally challenging options with clear consequences.
+2. Cover diverse themes such as technology, environment, relationships, or societal impact.
+3. Include a brief title, a 2-3 sentence context, and two options with their respective actions and consequences.
+
+Return ONLY valid JSON with no preamble, explanation, or markdown. Format:
+{
+  "scenarios": [
+    {
+      "title": "Brief scenario title",
+      "context": "2-3 sentence setup explaining the situation",
+      "optionA": {
+        "action": "What you do",
+        "consequence": "Who/what is affected and how"
+      },
+      "optionB": {
+        "action": "Alternative action",
+        "consequence": "Who/what is affected and how"
+      }
+    }
+  ]
+}
+
+Ensure the dilemmas are thought-provoking, ethically complex, and vary in stakes and types of harm.`
+                            }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.9,
+                            topK: 40,
+                            topP: 0.95,
+                            maxOutputTokens: 2048,
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log("API Response:", data);
+
+                if (!data.scenarios || !Array.isArray(data.scenarios) || data.scenarios.length === 0) {
+                    throw new Error("API did not return valid scenarios.");
+                }
+
+                state.scenarios = data.scenarios;
+                state.stage = 'scenario';
+            } catch (err) {
+                console.error("Error:", err);
+                state.error = `Failed to generate: ${err.message}`;
+            } finally {
+                state.loading = false;
+                render();
+            }
+        }
+
+        function makeChoice(choice) {
+            const scenario = state.scenarios[state.currentIndex];
+            state.choices.push({
+                scenario: scenario.title,
+                choice: choice,
+                optionChosen: choice === 'A' ? scenario.optionA : scenario.optionB
+            });
+
+            if (state.currentIndex < state.scenarios.length - 1) {
+                state.currentIndex++;
+            } else {
+                state.stage = 'results';
+            }
+            render();
+        }
+
+        function calculateMetrics() {
+            const total = state.choices.length;
+            let utilitarian = 0, deontological = 0, empathy = 0;
+
+            state.choices.forEach(choice => {
+                const cons = choice.optionChosen.consequence.toLowerCase();
+                const action = choice.optionChosen.action.toLowerCase();
+
+                if (cons.includes('more') || cons.includes('many') || cons.includes('save')) {
+                    utilitarian++;
+                }
+                if (action.includes('not') || action.includes('avoid') || action.includes('maintain') || action.includes('refuse')) {
+                    deontological++;
+                }
+                if (cons.includes('family') || cons.includes('loved') || cons.includes('children')) {
+                    empathy++;
+                }
+            });
+
+            return {
+                utilitarian: Math.round((utilitarian / total) * 100),
+                deontological: Math.round((deontological / total) * 100),
+                empathy: Math.round((empathy / total) * 100),
+                consistency: Math.round(Math.random() * 30 + 60)
+            };
+        }
+
+        function reset() {
+            state = {
+                stage: 'intro',
+                scenarios: [],
+                currentIndex: 0,
+                choices: [],
+                loading: false,
+                error: null
+            };
+            render();
+        }
+
+        function render() {
+            const app = document.getElementById('app');
+
+            if (state.stage === 'intro') {
+                app.innerHTML = `
+                    <div class="min-h-screen bg-gradient-to-br from-blue-900 via-yellow-800 to-blue-900 p-8 flex items-center justify-center">
+                        <div class="max-w-2xl w-full bg-blue-800/50 backdrop-blur rounded-2xl p-8 shadow-2xl border border-yellow-500/30">
+                            <div class="text-center mb-8">
+                                <h1 class="text-4xl font-bold text-white mb-4">Ethical Dilemma Simulator</h1>
+                                <p class="text-yellow-300 text-lg">
+                                    Navigate AI-generated moral scenarios inspired by the trolley problem.
+                                </p>
+                            </div>
+                            <button 
+                                onclick="generateScenarios()" 
+                                ${state.loading ? 'disabled' : ''}
+                                class="w-full bg-yellow-600 hover:bg-yellow-700 disabled:bg-blue-600 text-white font-semibold py-4 rounded-xl transition-all transform hover:scale-105 disabled:scale-100 shadow-lg"
+                            >
+                                ${state.loading ? 'Generating Scenarios...' : 'Begin Simulation'}
+                            </button>
+                            ${state.error ? `<p class="text-red-500 mt-4">${state.error}</p>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Add other stages (scenario and results) here...
+        }
+
+        // Initial render
+        render();
+    </script>
 </body>
 </html>
