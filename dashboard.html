@@ -11,46 +11,87 @@
             box-sizing: border-box;
         }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-image: url('Train Of Thought Simulator.svg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
             min-height: 100vh;
             color: #333;
+            line-height: 1.6;
         }
         nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 1.5rem 3rem;
-            background: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: transparent;
+            position: relative;
+            z-index: 1000;
         }
         .logo {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
             text-decoration: none;
+        }
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: #333;
+            border-radius: 4px;
+            position: relative;
+        }
+        .logo-icon::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 12px solid white;
+        }
+        .logo-icon::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+            right: 2px;
+            height: 4px;
+            background: white;
+            border-radius: 2px;
         }
         .nav-links {
             display: flex;
-            gap: 2rem;
+            gap: 2.5rem;
         }
         .nav-links a {
             text-decoration: none;
             color: #333;
             font-weight: 500;
+            font-size: 1rem;
             transition: color 0.3s;
         }
         .nav-links a:hover {
-            color: #667eea;
+            color: #555;
         }
         .nav-links a.active {
-            color: #667eea;
-            border-bottom: 2px solid #667eea;
+            color: #333;
         }
         .page {
             padding: 3rem;
+            padding-top: 100px;
             max-width: 1200px;
             margin: 0 auto;
+            position: relative;
+            z-index: 1;
         }
         .dashboard-container {
             background: white;
@@ -63,22 +104,217 @@
             margin-bottom: 2rem;
             font-size: 2.5rem;
         }
+        .framework-section {
+            margin-top: 4rem;
+        }
+        .framework-section h3 {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid #667eea;
+        }
+        .framework-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .framework-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+        }
+        .framework-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .framework-icon {
+            font-size: 2rem;
+        }
+        .framework-description {
+            font-size: 1.1rem;
+            color: #555;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+        .framework-characteristics {
+            background: white;
+            border-left: 4px solid #667eea;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        .framework-characteristics h4 {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        .framework-characteristics ul {
+            list-style: none;
+            padding: 0;
+        }
+        .framework-characteristics li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: #555;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        .framework-characteristics li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+        .framework-example {
+            background: #e8f4f8;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            border-left: 4px solid #4ecdc4;
+        }
+        .framework-example h4 {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+        .framework-example p {
+            color: #555;
+            font-size: 1rem;
+            line-height: 1.7;
+            margin: 0;
+        }
     </style>
 </head>
 <body>
     <nav>
-        <a href="index.html" class="logo">Train of Thought</a>
+        <a href="index.html" class="logo">
+            <div class="logo-icon"></div>
+            <span>Train Of Thought</span>
+        </a>
         <div class="nav-links">
             <a href="index.html">Home</a>
             <a href="simulator.html">Simulator</a>
-            <a href="dashboard.html" class="active">Dashboard</a>
+            <a href="dashboard.html" class="active">Analytics</a>
         </div>
     </nav>
     <div class="page">
         <div class="dashboard-container">
-            <h2>Your Decision Dashboard</h2>
-            <p style="color: #666; font-size: 1.2rem; margin-bottom: 2rem;">Track your moral decision patterns and compare with aggregate trends.</p>
-            <p style="color: #999;">Coming soon: Interactive visualizations of your ethical profile!</p>
+            <h2>Ethical Framework Guide</h2>
+            <p style="color: #666; font-size: 1.2rem; margin-bottom: 3rem;">Understanding different ethical frameworks and how they shape decision-making in moral dilemmas.</p>
+            
+            <div class="framework-section">
+                <div class="framework-card">
+                    <div class="framework-title">
+                        <span class="framework-icon">⚖️</span>
+                        <span>Utilitarian Ethics</span>
+                    </div>
+                    <div class="framework-description">
+                        Utilitarian ethics, also known as consequentialism, is a moral framework that evaluates the morality of actions based on their outcomes. The core principle is to maximize overall happiness, well-being, or utility for the greatest number of people. A utilitarian-driven person makes decisions by calculating the net benefit or harm that will result from their actions, prioritizing the option that produces the best overall consequences.
+                    </div>
+                    <div class="framework-characteristics">
+                        <h4>Key Characteristics:</h4>
+                        <ul>
+                            <li><strong>Outcome-focused:</strong> Decisions are evaluated based on the results they produce, not the actions themselves</li>
+                            <li><strong>Quantitative thinking:</strong> Tends to weigh costs and benefits, often thinking in terms of numbers or scales of impact</li>
+                            <li><strong>Impartial perspective:</strong> Strives to treat all individuals equally when calculating overall utility</li>
+                            <li><strong>Pragmatic approach:</strong> Willing to make difficult choices if they lead to better overall outcomes</li>
+                            <li><strong>Future-oriented:</strong> Considers long-term consequences and ripple effects of decisions</li>
+                            <li><strong>Flexible principles:</strong> May break traditional rules if doing so produces better results</li>
+                        </ul>
+                    </div>
+                    <div class="framework-example">
+                        <h4>Example in Practice:</h4>
+                        <p>In the classic trolley problem, a utilitarian would likely pull the lever to divert the train, sacrificing one person to save five. The calculation is straightforward: five lives saved outweighs one life lost, resulting in a net positive outcome. A utilitarian might also support policies like vaccination mandates or resource allocation during emergencies, where the greater good takes precedence over individual preferences.</p>
+                    </div>
+                </div>
+
+                <div class="framework-card">
+                    <div class="framework-title">
+                        <span class="framework-icon">📜</span>
+                        <span>Deontological Ethics</span>
+                    </div>
+                    <div class="framework-description">
+                        Deontological ethics, derived from the Greek word "deon" meaning duty, is a rule-based moral framework that judges the morality of actions based on adherence to moral rules, duties, and principles. A deontological person believes that certain actions are inherently right or wrong, regardless of their consequences. They follow moral rules because it's the right thing to do, not because it leads to better outcomes.
+                    </div>
+                    <div class="framework-characteristics">
+                        <h4>Key Characteristics:</h4>
+                        <ul>
+                            <li><strong>Rule-based thinking:</strong> Decisions are guided by universal moral principles and duties</li>
+                            <li><strong>Action-focused:</strong> The morality of an action is determined by the action itself, not its consequences</li>
+                            <li><strong>Consistent principles:</strong> Applies the same moral rules across all situations</li>
+                            <li><strong>Rights-oriented:</strong> Emphasizes individual rights and the duty to respect them</li>
+                            <li><strong>Impartial application:</strong> Believes moral rules should apply equally to everyone</li>
+                            <li><strong>Resistant to compromise:</strong> Less willing to bend rules even when outcomes might be better</li>
+                        </ul>
+                    </div>
+                    <div class="framework-example">
+                        <h4>Example in Practice:</h4>
+                        <p>In the trolley problem, a deontological person might refuse to pull the lever, arguing that actively causing someone's death (even to save others) violates the moral rule against killing. They might say "I cannot be responsible for killing someone, even if it means others die." This person would also oppose lying, stealing, or breaking promises, even if doing so could prevent greater harm, because these actions violate fundamental moral duties.</p>
+                    </div>
+                </div>
+
+                <div class="framework-card">
+                    <div class="framework-title">
+                        <span class="framework-icon">❤️</span>
+                        <span>Empathy-Driven Ethics</span>
+                    </div>
+                    <div class="framework-description">
+                        Empathy-driven ethics, also known as care ethics or relational ethics, prioritizes personal relationships, emotional connections, and the well-being of those we care about. An empathy-driven person makes decisions based on compassion, emotional bonds, and the impact on people they know or feel connected to. This framework emphasizes the importance of relationships and emotional responses in moral reasoning.
+                    </div>
+                    <div class="framework-characteristics">
+                        <h4>Key Characteristics:</h4>
+                        <ul>
+                            <li><strong>Relationship-focused:</strong> Prioritizes the well-being of people they know or feel connected to</li>
+                            <li><strong>Emotional reasoning:</strong> Decisions are heavily influenced by feelings of compassion, love, and care</li>
+                            <li><strong>Context-sensitive:</strong> Considers the specific relationships and emotional dynamics in each situation</li>
+                            <li><strong>Personal connection matters:</strong> May make different choices when loved ones are involved</li>
+                            <li><strong>Compassionate approach:</strong> Focuses on reducing suffering and promoting care</li>
+                            <li><strong>Vulnerability-aware:</strong> Particularly attentive to the needs of those who are vulnerable or dependent</li>
+                        </ul>
+                    </div>
+                    <div class="framework-example">
+                        <h4>Example in Practice:</h4>
+                        <p>In a variation of the trolley problem where the one person on the side track is a family member, an empathy-driven person would likely refuse to pull the lever, prioritizing their loved one over the five strangers. They might also choose to help a friend in need over contributing to a charity that could help more people, because the personal relationship and emotional connection take precedence over abstract calculations of utility.</p>
+                    </div>
+                </div>
+
+                <div class="framework-card">
+                    <div class="framework-title">
+                        <span class="framework-icon">🚀</span>
+                        <span>Risk-Taking Ethics</span>
+                    </div>
+                    <div class="framework-description">
+                        Risk-taking ethics describes a decision-making approach that embraces uncertainty, experimentation, and calculated risks in pursuit of potentially better outcomes. A risk-taking person is willing to try novel approaches, accept uncertainty, and make decisions that might not have guaranteed results. They value innovation, exploration, and the possibility of discovering better solutions through experimentation.
+                    </div>
+                    <div class="framework-characteristics">
+                        <h4>Key Characteristics:</h4>
+                        <ul>
+                            <li><strong>Innovation-oriented:</strong> Willing to try new approaches and experimental solutions</li>
+                            <li><strong>Uncertainty-tolerant:</strong> Comfortable making decisions without complete information</li>
+                            <li><strong>Future-focused:</strong> Values potential long-term benefits over guaranteed short-term outcomes</li>
+                            <li><strong>Optimistic outlook:</strong> Believes that taking risks can lead to better solutions</li>
+                            <li><strong>Adaptive thinking:</strong> Open to changing strategies based on new information</li>
+                            <li><strong>Growth mindset:</strong> Views failures as learning opportunities rather than reasons to avoid risk</li>
+                        </ul>
+                    </div>
+                    <div class="framework-example">
+                        <h4>Example in Practice:</h4>
+                        <p>In a trolley problem scenario with an experimental braking system that might work, a risk-taking person might choose to try the untested technology rather than the guaranteed option of pulling the lever. They might also support experimental medical treatments, innovative social policies, or cutting-edge technologies, accepting that some experiments might fail but believing that progress requires taking calculated risks.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </body>

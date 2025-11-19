@@ -11,16 +11,29 @@
             box-sizing: border-box;
         }
         body {
+<<<<<<< Updated upstream
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #333;
+=======
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+            overflow-x: hidden;
+            background-image: url('Train Of Thought Simulator.svg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+>>>>>>> Stashed changes
         }
         nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 1.5rem 3rem;
+<<<<<<< Updated upstream
             background: rgba(255, 255, 255, 0.95);
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
@@ -33,11 +46,59 @@
         .nav-links {
             display: flex;
             gap: 2rem;
+=======
+            background: transparent;
+            position: relative;
+            z-index: 1000;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+            text-decoration: none;
+        }
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: #333;
+            border-radius: 4px;
+            position: relative;
+        }
+        .logo-icon::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 12px solid white;
+        }
+        .logo-icon::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+            right: 2px;
+            height: 4px;
+            background: white;
+            border-radius: 2px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+>>>>>>> Stashed changes
         }
         .nav-links a {
             text-decoration: none;
             color: #333;
             font-weight: 500;
+<<<<<<< Updated upstream
             transition: color 0.3s;
         }
         .nav-links a:hover {
@@ -63,11 +124,26 @@
             color: #667eea;
             margin-bottom: 2rem;
             font-size: 2.5rem;
+=======
+            font-size: 1rem;
+            transition: color 0.3s;
+        }
+        .nav-links a:hover {
+            color: #555;
+        }
+        .nav-links a.active {
+            color: #333;
+        }
+        #app {
+            position: relative;
+            z-index: 1;
+>>>>>>> Stashed changes
         }
     </style>
 </head>
 <body>
     <nav>
+<<<<<<< Updated upstream
         <a href="index.html" class="logo">Train of Thought</a>
         <div class="nav-links">
             <a href="index.html">Home</a>
@@ -82,5 +158,635 @@
             <p style="color: #999;">Coming soon: Face probabilistic variations of the trolley problem with adaptive learning!</p>
         </div>
     </div>
+=======
+        <a href="index.html" class="logo">
+            <div class="logo-icon"></div>
+            <span>Train Of Thought</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="simulator.html" class="active">Simulator</a>
+            <a href="dashboard.html">Analytics</a>
+        </div>
+    </nav>
+    <div id="app"></div>
+
+    <script>
+        // ===== Replace with your actual API key =====
+        const GEMINI_API_KEY = "";
+        // ============================================
+
+        let state = {
+            stage: 'intro',
+            scenarios: [],
+            currentIndex: 0,
+            choices: [],
+            loading: false,
+            error: null
+        };
+
+        async function generateScenarios() {
+            state.loading = true;
+            state.error = null;
+            render();
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `Generate 5 unique ethical dilemmas inspired by the trolley problem. Each dilemma should:
+1. Present two morally challenging options with clear consequences.
+2. Cover diverse themes such as technology, environment, relationships, or societal impact.
+3. Include a brief title, a 2-3 sentence context, and two options with their respective actions and consequences.
+
+CRITICAL: Return ONLY valid, parseable JSON. No markdown code blocks, no explanations, no preamble. The JSON must be syntactically correct with proper commas, brackets, and quotes. Escape any quotes in text content.
+
+Required JSON format (copy this structure exactly):
+{
+  "scenarios": [
+    {
+      "title": "Brief scenario title",
+      "context": "2-3 sentence setup explaining the situation",
+      "optionA": {
+        "action": "What you do",
+        "consequence": "Who/what is affected and how"
+      },
+      "optionB": {
+        "action": "Alternative action",
+        "consequence": "Who/what is affected and how"
+      }
+    }
+  ]
+}
+
+Ensure the dilemmas are thought-provoking, ethically complex, and vary in stakes and types of harm. Return valid JSON only.`
+                            }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.7,
+                            topK: 40,
+                            topP: 0.95,
+                            maxOutputTokens: 4096,
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log("API Response:", data);
+
+                // Check if response was truncated
+                const finishReason = data.candidates?.[0]?.finishReason;
+                if (finishReason === 'MAX_TOKENS' || finishReason === 'OTHER') {
+                    console.warn("API response may be truncated. Finish reason:", finishReason);
+                }
+
+                // Extract text from Gemini API response
+                let scenariosData;
+                if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text) {
+                    const responseText = data.candidates[0].content.parts[0].text;
+                    console.log("Raw API text:", responseText);
+                    
+                    // Try to extract JSON from the response (handle markdown code blocks)
+                    let jsonText = responseText;
+                    
+                    // Remove markdown code blocks if present
+                    jsonText = jsonText.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+                    
+                    // Check if JSON appears incomplete (missing closing braces)
+                    const openBraces = (jsonText.match(/\{/g) || []).length;
+                    const closeBraces = (jsonText.match(/\}/g) || []).length;
+                    const openBrackets = (jsonText.match(/\[/g) || []).length;
+                    const closeBrackets = (jsonText.match(/\]/g) || []).length;
+                    
+                    // Try to repair incomplete JSON
+                    if (openBraces > closeBraces || openBrackets > closeBrackets) {
+                        console.warn("JSON appears incomplete. Attempting to repair...");
+                        // Close incomplete structures
+                        while (openBraces > closeBraces) {
+                            jsonText += '}';
+                        }
+                        while (openBrackets > closeBrackets) {
+                            jsonText += ']';
+                        }
+                    }
+                    
+                    // Find JSON object (look for opening brace)
+                    const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        jsonText = jsonMatch[0];
+                        
+                        // Try to fix common JSON issues
+                        // Remove trailing commas before closing brackets/braces
+                        jsonText = jsonText.replace(/,(\s*[}\]])/g, '$1');
+                        // Remove comments (though JSON shouldn't have them)
+                        jsonText = jsonText.replace(/\/\/.*$/gm, '');
+                        jsonText = jsonText.replace(/\/\*[\s\S]*?\*\//g, '');
+                        // Fix incomplete strings at the end (if JSON was cut off mid-string)
+                        // Check if the JSON ends with an unclosed string
+                        const lastQuoteIndex = jsonText.lastIndexOf('"');
+                        const textAfterLastQuote = jsonText.substring(lastQuoteIndex + 1);
+                        // If there's text after the last quote that doesn't contain closing braces, the string might be incomplete
+                        if (textAfterLastQuote && !textAfterLastQuote.match(/[}\]]/)) {
+                            // Close the string and add necessary closing structures
+                            jsonText = jsonText.substring(0, lastQuoteIndex + 1) + '"' + textAfterLastQuote;
+                        }
+                        // Normalize whitespace but be careful with strings
+                        jsonText = jsonText.trim();
+                        
+                        try {
+                            scenariosData = JSON.parse(jsonText);
+                        } catch (parseError) {
+                            console.error("JSON parse error:", parseError);
+                            const positionMatch = parseError.message.match(/position (\d+)/);
+                            let errorPos = jsonText.length;
+                            
+                            if (positionMatch) {
+                                errorPos = parseInt(positionMatch[1]);
+                                const start = Math.max(0, errorPos - 100);
+                                const end = Math.min(jsonText.length, errorPos + 100);
+                                console.error("Problematic JSON section:", jsonText.substring(start, end));
+                                console.error("Full JSON length:", jsonText.length);
+                                console.error("JSON ends with:", jsonText.substring(Math.max(0, jsonText.length - 200)));
+                            } else {
+                                console.error("Full JSON:", jsonText);
+                            }
+                            
+                            // Try to extract complete scenarios from truncated JSON
+                            console.warn("Attempting to extract complete scenarios from truncated JSON...");
+                            try {
+                                // Find the position where we can safely cut - look for complete optionB objects
+                                // We'll search backwards from the error position to find complete scenarios
+                                
+                                // Find all occurrences of complete optionB patterns (ending with closed quotes and braces)
+                                const optionBEndPattern = /"consequence":\s*"([^"\\]|\\.)*"\s*\}\s*\}/g;
+                                const matches = [];
+                                let match;
+                                while ((match = optionBEndPattern.exec(jsonText)) !== null) {
+                                    if (match.index < errorPos) {
+                                        matches.push(match);
+                                    }
+                                }
+                                
+                                if (matches.length > 0) {
+                                    // Use the last complete optionB before the error
+                                    const lastMatch = matches[matches.length - 1];
+                                    const cutPos = lastMatch.index + lastMatch[0].length;
+                                    
+                                    // Find the scenarios array start
+                                    const arrayStart = jsonText.indexOf('[');
+                                    if (arrayStart >= 0 && cutPos > arrayStart) {
+                                        // Extract complete scenarios
+                                        let scenariosContent = jsonText.substring(arrayStart + 1, cutPos).trim();
+                                        // Remove trailing comma if present
+                                        scenariosContent = scenariosContent.replace(/,\s*$/, '');
+                                        // Build valid JSON
+                                        const validJson = `{\n  "scenarios": [\n${scenariosContent}\n  ]\n}`;
+                                        
+                                        scenariosData = JSON.parse(validJson);
+                                        console.log(`Successfully extracted ${scenariosData.scenarios?.length || 0} complete scenarios from truncated response`);
+                                    } else {
+                                        throw parseError;
+                                    }
+                                } else {
+                                    throw parseError;
+                                }
+                            } catch (extractError) {
+                                console.error("Failed to extract scenarios from truncated JSON:", extractError);
+                                throw new Error(`Failed to parse JSON: ${parseError.message}. The API response may be incomplete or invalid. Try increasing maxOutputTokens or reducing the number of scenarios.`);
+                            }
+                        }
+                    } else {
+                        throw new Error("Could not find JSON in API response");
+                    }
+                } else if (data.scenarios) {
+                    // Fallback: if scenarios are directly in the response
+                    scenariosData = data;
+                } else {
+                    throw new Error("Unexpected API response structure");
+                }
+
+                if (!scenariosData.scenarios || !Array.isArray(scenariosData.scenarios) || scenariosData.scenarios.length === 0) {
+                    throw new Error("API did not return valid scenarios.");
+                }
+
+                state.scenarios = scenariosData.scenarios;
+                state.stage = 'scenario';
+                state.currentIndex = 0;
+                console.log("Scenarios loaded:", state.scenarios.length);
+                console.log("Current state:", state);
+            } catch (err) {
+                console.error("Error:", err);
+                state.error = `Failed to generate: ${err.message}`;
+            } finally {
+                state.loading = false;
+                render();
+            }
+        }
+
+        function makeChoice(choice) {
+            const scenario = state.scenarios[state.currentIndex];
+            state.choices.push({
+                scenario: scenario.title,
+                choice: choice,
+                optionChosen: choice === 'A' ? scenario.optionA : scenario.optionB
+            });
+
+            if (state.currentIndex < state.scenarios.length - 1) {
+                state.currentIndex++;
+            } else {
+                state.stage = 'results';
+            }
+            render();
+        }
+
+        function calculateMetrics() {
+            const total = state.choices.length;
+            let utilitarian = 0, deontological = 0, empathy = 0, riskTaking = 0;
+            let optionACount = 0, optionBCount = 0;
+            const choicePattern = [];
+            const decisionSpeed = []; // Track if choices were consistent
+
+            state.choices.forEach((choice, idx) => {
+                const cons = choice.optionChosen.consequence.toLowerCase();
+                const action = choice.optionChosen.action.toLowerCase();
+                
+                // Track option preference
+                if (choice.choice === 'A') optionACount++;
+                else optionBCount++;
+                
+                choicePattern.push(choice.choice);
+
+                // Utilitarian analysis
+                if (cons.includes('more') || cons.includes('many') || cons.includes('save') || cons.includes('million')) {
+                    utilitarian++;
+                }
+                
+                // Deontological analysis
+                if (action.includes('not') || action.includes('avoid') || action.includes('maintain') || action.includes('refuse') || action.includes('allow')) {
+                    deontological++;
+                }
+                
+                // Empathy analysis
+                if (cons.includes('family') || cons.includes('loved') || cons.includes('children') || cons.includes('personal')) {
+                    empathy++;
+                }
+                
+                // Risk-taking analysis
+                if (cons.includes('experimental') || cons.includes('uncertain') || cons.includes('risk') || action.includes('try')) {
+                    riskTaking++;
+                }
+            });
+
+            // Calculate consistency (how often same choice pattern)
+            let consistency = 0;
+            if (choicePattern.length > 1) {
+                let switches = 0;
+                for (let i = 1; i < choicePattern.length; i++) {
+                    if (choicePattern[i] !== choicePattern[i-1]) switches++;
+                }
+                consistency = Math.round((1 - (switches / (choicePattern.length - 1))) * 100);
+            } else {
+                consistency = 100;
+            }
+
+            // Determine primary ethical framework
+            const scores = {
+                utilitarian: Math.round((utilitarian / total) * 100),
+                deontological: Math.round((deontological / total) * 100),
+                empathy: Math.round((empathy / total) * 100),
+                riskTaking: Math.round((riskTaking / total) * 100)
+            };
+            
+            const primaryFramework = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
+            
+            // Calculate decision balance
+            const balance = Math.abs(optionACount - optionBCount);
+            const balanceScore = Math.round((1 - (balance / total)) * 100);
+
+            // Pattern analysis
+            const patternAnalysis = analyzePatterns(choicePattern);
+
+            return {
+                ...scores,
+                consistency,
+                balanceScore,
+                primaryFramework,
+                optionAPreference: Math.round((optionACount / total) * 100),
+                optionBPreference: Math.round((optionBCount / total) * 100),
+                totalDecisions: total,
+                patternAnalysis,
+                insights: generateInsights(scores, primaryFramework, consistency, balanceScore)
+            };
+        }
+
+        function analyzePatterns(pattern) {
+            if (pattern.length < 2) return { type: 'insufficient', description: 'Need more decisions to analyze patterns' };
+            
+            // Check for alternating pattern
+            let alternating = true;
+            for (let i = 1; i < pattern.length; i++) {
+                if (pattern[i] === pattern[i-1]) {
+                    alternating = false;
+                    break;
+                }
+            }
+            
+            // Check for consistent pattern
+            const allSame = pattern.every(p => p === pattern[0]);
+            
+            // Check for trend (increasing preference for one option)
+            let trend = 'neutral';
+            const firstHalf = pattern.slice(0, Math.floor(pattern.length / 2));
+            const secondHalf = pattern.slice(Math.floor(pattern.length / 2));
+            const firstHalfA = firstHalf.filter(p => p === 'A').length;
+            const secondHalfA = secondHalf.filter(p => p === 'A').length;
+            
+            if (secondHalfA > firstHalfA * 1.5) trend = 'increasing_A';
+            else if (firstHalfA > secondHalfA * 1.5) trend = 'decreasing_A';
+            
+            return {
+                type: allSame ? 'consistent' : alternating ? 'alternating' : 'mixed',
+                trend,
+                description: allSame 
+                    ? 'You consistently chose the same option type' 
+                    : alternating 
+                    ? 'You alternated between options' 
+                    : 'You showed mixed decision patterns'
+            };
+        }
+
+        function generateInsights(scores, primaryFramework, consistency, balanceScore) {
+            const insights = [];
+            
+            // Primary framework insight
+            const frameworkNames = {
+                utilitarian: 'Utilitarian (Greatest Good)',
+                deontological: 'Deontological (Rule-Based)',
+                empathy: 'Empathy-Driven (Personal Connection)',
+                riskTaking: 'Risk-Taking (Experimental)'
+            };
+            insights.push({
+                type: 'primary',
+                title: 'Primary Ethical Framework',
+                text: `Your decisions align most closely with ${frameworkNames[primaryFramework]} ethics, suggesting you prioritize ${primaryFramework === 'utilitarian' ? 'maximizing overall benefit' : primaryFramework === 'deontological' ? 'following moral rules and principles' : primaryFramework === 'empathy' ? 'personal relationships and emotional connections' : 'taking calculated risks and exploring new approaches'}.`
+            });
+            
+            // Consistency insight
+            if (consistency > 75) {
+                insights.push({
+                    type: 'consistency',
+                    title: 'High Decision Consistency',
+                    text: `Your ${consistency}% consistency score indicates you have strong, stable ethical principles that guide your decisions across different scenarios.`
+                });
+            } else if (consistency < 50) {
+                insights.push({
+                    type: 'consistency',
+                    title: 'Adaptive Decision-Making',
+                    text: `Your ${consistency}% consistency score suggests you adapt your ethical approach based on context, showing flexibility in moral reasoning.`
+                });
+            }
+            
+            // Balance insight
+            if (balanceScore > 80) {
+                insights.push({
+                    type: 'balance',
+                    title: 'Balanced Decision-Making',
+                    text: `You showed balanced consideration of both options, indicating thoughtful evaluation of each scenario's unique circumstances.`
+                });
+            }
+            
+            // Framework combination insights
+            if (scores.utilitarian > 60 && scores.deontological > 40) {
+                insights.push({
+                    type: 'combination',
+                    title: 'Hybrid Ethical Approach',
+                    text: 'You blend utilitarian and deontological reasoning, balancing outcomes with principles in your decision-making.'
+                });
+            }
+            
+            return insights;
+        }
+
+        function reset() {
+            state = {
+                stage: 'intro',
+                scenarios: [],
+                currentIndex: 0,
+                choices: [],
+                loading: false,
+                error: null
+            };
+            render();
+        }
+
+        function render() {
+            const app = document.getElementById('app');
+
+            if (state.stage === 'intro') {
+                app.innerHTML = `
+                    <div class="min-h-screen p-8 flex items-center justify-center" style="padding-top: 100px;">
+                        <div class="max-w-2xl w-full bg-blue-800/50 backdrop-blur rounded-2xl p-8 shadow-2xl border border-yellow-500/30">
+                            <div class="text-center mb-8">
+                                <h1 class="text-4xl font-bold text-white mb-4">Ethical Dilemma Simulator</h1>
+                                <p class="text-yellow-300 text-lg">
+                                    Navigate AI-generated moral scenarios inspired by the trolley problem.
+                                </p>
+        </div>
+                            <button 
+                                onclick="generateScenarios()" 
+                                ${state.loading ? 'disabled' : ''}
+                                class="w-full bg-yellow-600 hover:bg-yellow-700 disabled:bg-blue-600 text-white font-semibold py-4 rounded-xl transition-all transform hover:scale-105 disabled:scale-100 shadow-lg"
+                            >
+                                ${state.loading ? 'Generating Scenarios...' : 'Begin Simulation'}
+                            </button>
+                            ${state.error ? `<p class="text-red-500 mt-4">${state.error}</p>` : ''}
+        </div>
+    </div>
+                `;
+            }
+
+            if (state.stage === 'scenario') {
+                if (!state.scenarios || state.scenarios.length === 0) {
+                    console.error("No scenarios available in scenario stage");
+                    state.stage = 'intro';
+                    state.error = "No scenarios were loaded. Please try again.";
+                    render();
+                    return;
+                }
+                
+                const scenario = state.scenarios[state.currentIndex];
+                if (!scenario) {
+                    console.error("Invalid scenario index:", state.currentIndex);
+                    return;
+                }
+                app.innerHTML = `
+                    <div class="min-h-screen p-8 flex items-center justify-center" style="padding-top: 100px;">
+                        <div class="max-w-3xl w-full bg-blue-800/50 backdrop-blur rounded-2xl p-8 shadow-2xl border border-yellow-500/30">
+                            <div class="mb-6">
+                                <div class="flex justify-between items-center mb-4">
+                                    <span class="text-yellow-300 text-sm">Scenario ${state.currentIndex + 1} of ${state.scenarios.length}</span>
+                                    <span class="text-yellow-300 text-sm">Progress: ${Math.round(((state.currentIndex + 1) / state.scenarios.length) * 100)}%</span>
+                                </div>
+                                <h2 class="text-3xl font-bold text-white mb-4">${scenario.title}</h2>
+                                <p class="text-yellow-200 text-lg mb-6">${scenario.context}</p>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <button 
+                                    onclick="makeChoice('A')"
+                                    class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-4 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg text-left"
+                                >
+                                    <div class="font-bold mb-2">Option A</div>
+                                    <div class="text-sm opacity-90">${scenario.optionA.action}</div>
+                                    <div class="text-xs opacity-75 mt-1">${scenario.optionA.consequence}</div>
+                                </button>
+                                
+                                <button 
+                                    onclick="makeChoice('B')"
+                                    class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-4 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg text-left"
+                                >
+                                    <div class="font-bold mb-2">Option B</div>
+                                    <div class="text-sm opacity-90">${scenario.optionB.action}</div>
+                                    <div class="text-xs opacity-75 mt-1">${scenario.optionB.consequence}</div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (state.stage === 'results') {
+                const metrics = calculateMetrics();
+                
+                // Helper function to create progress bars with descriptions
+                const progressBar = (label, value, colorHex, description) => `
+                    <div class="mb-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-yellow-300 text-sm font-semibold">${label}</span>
+                            <span class="text-white font-bold">${value}%</span>
+                        </div>
+                        <div class="w-full bg-blue-900/50 rounded-full h-3 overflow-hidden mb-1">
+                            <div class="h-full rounded-full transition-all duration-500" style="width: ${value}%; background-color: ${colorHex}"></div>
+                        </div>
+                        <p class="text-yellow-200 text-xs opacity-75">${description}</p>
+                    </div>
+                `;
+                
+                app.innerHTML = `
+                    <div class="min-h-screen p-8" style="padding-top: 100px;">
+                        <div class="max-w-5xl mx-auto">
+                            <div class="bg-blue-800/50 backdrop-blur rounded-2xl p-8 shadow-2xl border border-yellow-500/30 mb-6">
+                                <h2 class="text-4xl font-bold text-white mb-2 text-center">Ethical Profile Analysis</h2>
+                                <p class="text-yellow-300 text-center mb-6">Based on ${metrics.totalDecisions} decisions</p>
+                                
+                                <!-- Primary Framework -->
+                                <div class="bg-blue-900/50 p-6 rounded-xl mb-6 border border-yellow-500/20">
+                                    <h3 class="text-xl font-bold text-yellow-300 mb-2">Primary Ethical Framework</h3>
+                                    <p class="text-white text-lg">${metrics.primaryFramework.charAt(0).toUpperCase() + metrics.primaryFramework.slice(1)} Ethics</p>
+                                    <p class="text-yellow-200 text-sm mt-2">${metrics.insights.find(i => i.type === 'primary')?.text || ''}</p>
+                                </div>
+                                
+                                <!-- Detailed Metrics with Progress Bars -->
+                                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                                    <div class="bg-blue-900/50 p-6 rounded-xl">
+                                        <h3 class="text-lg font-bold text-yellow-300 mb-4">Ethical Frameworks</h3>
+                                        ${progressBar('Utilitarian', metrics.utilitarian, '#22c55e', 'Prioritizes maximizing overall benefit and minimizing total harm')}
+                                        ${progressBar('Deontological', metrics.deontological, '#3b82f6', 'Follows moral rules and principles regardless of outcomes')}
+                                        ${progressBar('Empathy-Driven', metrics.empathy, '#ec4899', 'Makes decisions based on personal connections and emotional bonds')}
+                                        ${progressBar('Risk-Taking', metrics.riskTaking, '#f97316', 'Willing to take calculated risks and explore experimental approaches')}
+                                    </div>
+                                    
+                                    <div class="bg-blue-900/50 p-6 rounded-xl">
+                                        <h3 class="text-lg font-bold text-yellow-300 mb-4">Decision Patterns</h3>
+                                        ${progressBar('Consistency', metrics.consistency, '#a855f7', 'How often you make similar choices across different scenarios')}
+                                        ${progressBar('Balance', metrics.balanceScore, '#06b6d4', 'How evenly you consider both options before making decisions')}
+                                        <div class="mt-4 p-3 bg-blue-800/30 rounded-lg">
+                                            <div class="text-yellow-300 text-sm font-semibold mb-1">Option Preference</div>
+                                            <div class="text-white text-xs">Option A: ${metrics.optionAPreference}% | Option B: ${metrics.optionBPreference}%</div>
+                                        </div>
+                                        <div class="mt-3 p-3 bg-blue-800/30 rounded-lg">
+                                            <div class="text-yellow-300 text-sm font-semibold mb-1">Pattern Type</div>
+                                            <div class="text-white text-xs">${metrics.patternAnalysis.description}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Analytical Insights -->
+                                <div class="bg-blue-900/50 p-6 rounded-xl mb-6">
+                                    <h3 class="text-xl font-bold text-yellow-300 mb-4">Key Insights</h3>
+                                    <div class="space-y-3">
+                                        ${metrics.insights.map(insight => `
+                                            <div class="bg-blue-800/30 p-4 rounded-lg border-l-4 border-yellow-500">
+                                                <div class="text-yellow-300 font-semibold mb-1">${insight.title}</div>
+                                                <div class="text-white text-sm">${insight.text}</div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                                
+                                <!-- Decision History -->
+                                <div class="bg-blue-900/50 p-6 rounded-xl mb-6">
+                                    <h3 class="text-xl font-bold text-yellow-300 mb-4">Decision History</h3>
+                                    <div class="space-y-2 max-h-64 overflow-y-auto">
+                                        ${state.choices.map((choice, idx) => `
+                                            <div class="bg-blue-800/30 p-3 rounded-lg flex justify-between items-start">
+                                                <div class="flex-1">
+                                                    <div class="text-yellow-300 font-semibold text-sm">${idx + 1}. ${choice.scenario}</div>
+                                                    <div class="text-white text-xs mt-1 opacity-75">${choice.optionChosen.action}</div>
+                                                </div>
+                                                <div class="ml-4 px-3 py-1 rounded text-white text-xs font-bold" style="background-color: ${choice.choice === 'A' ? 'rgba(34, 197, 94, 0.5)' : 'rgba(37, 99, 235, 0.5)'}">
+                                                    ${choice.choice}
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                                
+                                <!-- Summary Statistics -->
+                                <div class="grid grid-cols-4 gap-4 mb-6">
+                                    <div class="bg-blue-900/50 p-4 rounded-lg text-center">
+                                        <div class="text-yellow-300 text-xs mb-1">Total Decisions</div>
+                                        <div class="text-2xl font-bold text-white">${metrics.totalDecisions}</div>
+                                    </div>
+                                    <div class="bg-blue-900/50 p-4 rounded-lg text-center">
+                                        <div class="text-yellow-300 text-xs mb-1">Avg Consistency</div>
+                                        <div class="text-2xl font-bold text-white">${metrics.consistency}%</div>
+                                    </div>
+                                    <div class="bg-blue-900/50 p-4 rounded-lg text-center">
+                                        <div class="text-yellow-300 text-xs mb-1">Decision Balance</div>
+                                        <div class="text-2xl font-bold text-white">${metrics.balanceScore}%</div>
+                                    </div>
+                                    <div class="bg-blue-900/50 p-4 rounded-lg text-center">
+                                        <div class="text-yellow-300 text-xs mb-1">Primary Score</div>
+                                        <div class="text-2xl font-bold text-white">${metrics[metrics.primaryFramework]}%</div>
+                                    </div>
+                                </div>
+                                
+                                <button 
+                                    onclick="reset()"
+                                    class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg"
+                                >
+                                    Start New Analysis
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Initial render
+        render();
+    </script>
+>>>>>>> Stashed changes
 </body>
 </html>
