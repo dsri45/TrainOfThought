@@ -106,14 +106,10 @@
     </nav>
     <div id="app"></div>
 
-    <!-- Load API configuration -->
-    <script src="config.js"></script>
     <script>
-        // API key is loaded from config.js
-        // If config.js is not found, use a placeholder (will show error)
-        if (typeof GEMINI_API_KEY === 'undefined') {
-            console.error('config.js not found! Please copy config.example.js to config.js and add your API key.');
-        }
+        // ===== Replace with your actual API key =====
+        const GEMINI_API_KEY = "AIzaSyDquBnjOvwuAPti2JbbAWiWW4BB75_NWwQ";
+        // ============================================
 
         let state = {
             stage: 'intro',
@@ -125,13 +121,6 @@
         };
 
         async function generateScenarios() {
-            if (!GEMINI_API_KEY || GEMINI_API_KEY === 'YOUR_API_KEY_HERE') {
-                state.error = 'API key not configured. Please copy config.example.js to config.js and add your API key.';
-                state.loading = false;
-                render();
-                return;
-            }
-
             state.loading = true;
             state.error = null;
             render();
